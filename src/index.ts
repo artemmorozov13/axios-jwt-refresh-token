@@ -35,23 +35,27 @@ export const createTokenRefreshMiddleware = (options: CreateTokenRefreshMiddlewa
   if (!accessToken && refreshToken) {
     isRefreshing = true
 
-    const tokens = await requestTokens()
+    try {
+      const tokens = await requestTokens()
 
-    if (tokens.accessToken) {
-      Cookies.set(accessTokenKey, tokens.accessToken, cookiesOptions)
+      if (tokens.accessToken) {
+        Cookies.set(accessTokenKey, tokens.accessToken, cookiesOptions)
+      }
+      if (tokens.refreshToken) {
+        Cookies.set(refreshTokenKey, tokens.refreshToken, cookiesOptions)
+      }
 
+      for (let i = 0; i < timedoutRequestsQueue.length; i++) {
+        const [timeout, resolver] = timedoutRequestsQueue[i]
+        clearTimeout(timeout)
+        resolver(true)
+      }
+    } catch (error) {
+      onRefreshAndAccessExpire()
+    } finally {
+      timedoutRequestsQueue.length = 0
+      isRefreshing = false
     }
-    if (tokens.refreshToken) {
-      Cookies.set(accessTokenKey, tokens.refreshToken, cookiesOptions)
-    }
-
-    for (let i = 0; i < timedoutRequestsQueue.length; i++) {
-      const [timeout, resolver] = timedoutRequestsQueue[i]
-      clearTimeout(timeout)
-      resolver(true)
-    }
-    timedoutRequestsQueue.length = 0
-    isRefreshing = false
   }
 
   if (!accessToken && !refreshToken) {
