@@ -11,8 +11,8 @@ export const createTokenRefreshMiddleware = (options: CreateTokenRefreshMiddlewa
     accessTokenKey,
     refreshTokenKey,
     timeoutRequest = TIMEOUT_REQUEST,
-    cookiesOptions = {},
     requestTokens,
+    setCookiesFunction,
     onRefreshAndAccessExpire
   } = options
 
@@ -38,12 +38,7 @@ export const createTokenRefreshMiddleware = (options: CreateTokenRefreshMiddlewa
     try {
       const tokens = await requestTokens()
 
-      if (tokens.accessToken) {
-        Cookies.set(accessTokenKey, tokens.accessToken, cookiesOptions)
-      }
-      if (tokens.refreshToken) {
-        Cookies.set(refreshTokenKey, tokens.refreshToken, cookiesOptions)
-      }
+      setCookiesFunction()
 
       for (let i = 0; i < timedoutRequestsQueue.length; i++) {
         const [timeout, resolver] = timedoutRequestsQueue[i]
