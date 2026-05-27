@@ -18,7 +18,7 @@ let isRefreshing = false;
 const timedoutRequestsQueue = [];
 const TIMEOUT_REQUEST = 30000;
 const createTokenRefreshMiddleware = (options) => (config) => __awaiter(void 0, void 0, void 0, function* () {
-    const { accessTokenKey, refreshTokenKey, timeoutRequest = TIMEOUT_REQUEST, cookiesOptions = {}, requestTokens, onRefreshAndAccessExpire } = options;
+    const { accessTokenKey, refreshTokenKey, timeoutRequest = TIMEOUT_REQUEST, requestTokens, setCookiesFunction, onRefreshAndAccessExpire } = options;
     const accessToken = js_cookie_1.default.get(accessTokenKey);
     const refreshToken = js_cookie_1.default.get(refreshTokenKey);
     if (isRefreshing) {
@@ -34,20 +34,22 @@ const createTokenRefreshMiddleware = (options) => (config) => __awaiter(void 0, 
     }
     if (!accessToken && refreshToken) {
         isRefreshing = true;
-        const tokens = yield requestTokens();
-        if (tokens.accessToken) {
-            js_cookie_1.default.set(accessTokenKey, tokens.accessToken, cookiesOptions);
+        try {
+            const tokens = yield requestTokens();
+            setCookiesFunction();
+            for (let i = 0; i < timedoutRequestsQueue.length; i++) {
+                const [timeout, resolver] = timedoutRequestsQueue[i];
+                clearTimeout(timeout);
+                resolver(true);
+            }
         }
-        if (tokens.refreshToken) {
-            js_cookie_1.default.set(accessTokenKey, tokens.refreshToken, cookiesOptions);
+        catch (error) {
+            onRefreshAndAccessExpire();
         }
-        for (let i = 0; i < timedoutRequestsQueue.length; i++) {
-            const [timeout, resolver] = timedoutRequestsQueue[i];
-            clearTimeout(timeout);
-            resolver(true);
+        finally {
+            timedoutRequestsQueue.length = 0;
+            isRefreshing = false;
         }
-        timedoutRequestsQueue.length = 0;
-        isRefreshing = false;
     }
     if (!accessToken && !refreshToken) {
         onRefreshAndAccessExpire();

@@ -8,7 +8,7 @@ export interface RequestAccessTokenResponse {
 export interface CreateTokenRefreshMiddleware {
   requestTokens: () => Promise<RequestAccessTokenResponse>;
   onRefreshAndAccessExpire: () => void;
-  setCookiesFunction: () => void; 
+  setCookiesFunction: (tokens: RequestAccessTokenResponse) => void; 
   accessTokenKey: string;
   refreshTokenKey: string;
   timeoutRequest?: number;

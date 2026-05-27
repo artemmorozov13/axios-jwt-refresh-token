@@ -38,7 +38,7 @@ export const createTokenRefreshMiddleware = (options: CreateTokenRefreshMiddlewa
     try {
       const tokens = await requestTokens()
 
-      setCookiesFunction()
+      setCookiesFunction(tokens)
 
       for (let i = 0; i < timedoutRequestsQueue.length; i++) {
         const [timeout, resolver] = timedoutRequestsQueue[i]
