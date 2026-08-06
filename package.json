@@ -1,6 +1,6 @@
 {
   "name": "jwt-token-refresh-middleware",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "description": "Automatic JWT refresh middleware for Axios with TypeScript support",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
